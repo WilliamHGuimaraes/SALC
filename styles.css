@@ -1,0 +1,25 @@
+body {
+  background-color: #f4fdf4;
+}
+
+h1, h2, h5, p {
+  color: #2e4e2e;
+}
+
+.list-group-item-success {
+  background-color: #d4edda !important;
+}
+
+.list-group-item-warning {
+  background-color: #fff3cd !important;
+}
+
+.list-group-item-danger {
+  background-color: #f8d7da !important;
+}
+
+footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
