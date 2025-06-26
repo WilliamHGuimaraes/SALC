@@ -9,7 +9,7 @@ CREATE TABLE Contrato (
     id_contrato INT PRIMARY KEY,
     numero VARCHAR(50),
     data_empenho DATE,
-    prazo_entrega INT,
+    prazo_entrega DATE,
     status VARCHAR(20),
     id_fornecedor INT,
     FOREIGN KEY (id_fornecedor) REFERENCES Fornecedor(id_fornecedor)
