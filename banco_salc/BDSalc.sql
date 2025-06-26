@@ -74,4 +74,3 @@ UPDATE Fornecedor SET email = 'empresa_alfa@hotmail.com' WHERE id_fornecedor = 1
 
 DELETE FROM Produto WHERE id_produto = 3;
 
-SELECT nome, cnpj FROM Fornecedor;
