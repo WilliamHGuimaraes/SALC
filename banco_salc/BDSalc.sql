@@ -68,3 +68,6 @@ INSERT INTO Fornecedor VALUES (3, 'EMPRESA CHARLIE', '03.234.567/0001-03', 'empr
 INSERT INTO Produto VALUES (1, 'Notebook', 'Notebook Dell 16GB RAM', 'unidade');
 INSERT INTO Produto VALUES (2, 'Rodo', 'Rodo cabo de madeira', 'unidade');
 INSERT INTO Produto VALUES (3, 'Panela', 'Panela de Ferro', 'unidade');
+
+
+UPDATE Fornecedor SET email = 'empresa_alfa@hotmail.com' WHERE id_fornecedor = 1;
