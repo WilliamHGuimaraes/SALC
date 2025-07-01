@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema SALC - Gestão de Compras</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body { background-color: #f4fdf4; }
+    h1, h3 { color: #2e4e2e; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="bg-dark text-white text-center py-3 mb-4">
+      <h1>Sistema de Acompanhamento de Compras da SALC</h1>
+    </header>
+
+    <div class="container">
+      <ul class="nav nav-tabs mb-4">
+        <li class="nav-item" v-for="(aba, index) in abas" :key="index">
+          <button class="nav-link" :class="{ active: abaAtual === aba }" @click="abaAtual = aba">{{ aba }}</button>
+        </li>
+      </ul>
+
+      <!-- FORNECEDORES -->
+      <div v-if="abaAtual === 'Fornecedores'">
+        <h3>Cadastro de Fornecedores</h3>
+        <form class="row g-3 mb-3" @submit.prevent="cadastrarFornecedor">
+          <div class="col-md-4"><input v-model="fornecedor.nome" type="text" class="form-control" placeholder="Nome" required></div>
+          <div class="col-md-4"><input v-model="fornecedor.cnpj" type="text" class="form-control" placeholder="CNPJ" required></div>
+          <div class="col-md-4"><input v-model="fornecedor.email" type="email" class="form-control" placeholder="E-mail" required></div>
+          <div class="col-12"><button class="btn btn-success" type="submit">Cadastrar</button></div>
+        </form>
+        <ul class="list-group">
+          <li v-for="(f, i) in fornecedores" :key="i" class="list-group-item">{{ f.nome }} - {{ f.cnpj }} - {{ f.email }}</li>
+        </ul>
+      </div>
+
+      <!-- CONTRATOS -->
+      <div v-if="abaAtual === 'Contratos'">
+        <h3>Cadastro de Contratos</h3>
+        <form class="row g-3 mb-3" @submit.prevent="cadastrarContrato">
+          <div class="col-md-3">
+            <select v-model="contrato.fornecedor" class="form-select" required>
+              <option disabled value="">Selecione o Fornecedor</option>
+              <option v-for="f in fornecedores" :value="f.nome">{{ f.nome }}</option>
+            </select>
+          </div>
+          <div class="col-md-3"><input v-model="contrato.produto" type="text" class="form-control" placeholder="Produto" required></div>
+          <div class="col-md-3"><input v-model="contrato.numero" type="text" class="form-control" placeholder="Nº Contrato" required></div>
+          <div class="col-md-3"><input v-model="contrato.dataEmpenho" type="date" class="form-control" placeholder="Data do Empenho" required></div>
+          <div class="col-md-3"><input v-model="contrato.prazoEntrega" type="date" class="form-control" placeholder="Prazo para Entrega" required></div>
+          <div class="col-md-3"><select v-model="contrato.status" class="form-select">
+            <option value="ativo">Ativo</option>
+            <option value="encerrado">Encerrado</option>
+          </select></div>
+          <div class="col-12"><button class="btn btn-success" type="submit">Cadastrar</button></div>
+        </form>
+        <ul class="list-group">
+          <li v-for="(c, i) in contratos" :key="i" class="list-group-item">
+            Contrato {{ c.numero }} - Produto: {{ c.produto }} - Fornecedor: {{ c.fornecedor }}<br>
+            Empenho: {{ c.dataEmpenho }} - Entrega: {{ c.prazoEntrega }} - Status: {{ c.status }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- ENTREGAS -->
+      <div v-if="abaAtual === 'Entregas'">
+        <h3>Registro de Entregas</h3>
+        <form class="row g-3 mb-3" @submit.prevent="registrarEntrega">
+          <div class="col-md-4">
+            <select v-model="entrega.contrato" class="form-select" required>
+              <option disabled value="">Selecione o Contrato</option>
+              <option v-for="c in contratos" :value="c.numero">Contrato {{ c.numero }}</option>
+            </select>
+          </div>
+          <div class="col-md-4"><input v-model="entrega.dataEntrega" type="date" class="form-control" placeholder="Data de Entrega" required></div>
+          <div class="col-md-4">
+            <select v-model="entrega.entregue" class="form-select">
+              <option value="true">Entregue</option>
+              <option value="false">Pendente</option>
+            </select>
+          </div>
+          <div class="col-md-12"><input v-model="entrega.observacao" type="text" class="form-control" placeholder="Observações"></div>
+          <div class="col-12"><button class="btn btn-success" type="submit">Registrar</button></div>
+        </form>
+        <ul class="list-group">
+          <li v-for="(e, i) in entregas" :key="i" class="list-group-item">
+            Contrato: {{ e.contrato }} - Data: {{ e.dataEntrega }} - {{ e.entregue === 'true' ? 'Entregue' : 'Pendente' }}<br>
+            Observações: {{ e.observacao }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- RELATÓRIOS -->
+      <div v-if="abaAtual === 'Relatórios'">
+        <h3>Relatórios</h3>
+        <p>Total de Contratos: {{ contratos.length }}</p>
+        <p>Dentro do Prazo: {{ totalPorStatus('verde') }}</p>
+        <p>Pendentes (31 a 60 dias): {{ totalPorStatus('amarelo') }}</p>
+        <p>Atrasados (>60 dias): {{ totalPorStatus('vermelho') }}</p>
+      </div>
+
+      <!-- BACKUP -->
+      <div v-if="abaAtual === 'Backup'">
+        <h3>Backup</h3>
+        <button class="btn btn-secondary" @click="executarBackup">Executar Backup</button>
+        <p v-if="backupData">Último backup: {{ backupData }}</p>
+      </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-2 mt-4">
+      Desenvolvido pela SALC - 2025
+    </footer>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          abas: ['Fornecedores', 'Contratos', 'Entregas', 'Relatórios', 'Backup'],
+          abaAtual: 'Fornecedores',
+          fornecedor: { nome: '', cnpj: '', email: '' },
+          fornecedores: [],
+          contrato: { numero: '', produto: '', fornecedor: '', dataEmpenho: '', prazoEntrega: '', status: 'ativo' },
+          contratos: [],
+          entrega: { contrato: '', dataEntrega: '', entregue: 'false', observacao: '' },
+          entregas: [],
+          backupData: null
+        };
+      },
+      methods: {
+        cadastrarFornecedor() {
+          this.fornecedores.push({ ...this.fornecedor });
+          this.fornecedor = { nome: '', cnpj: '', email: '' };
+        },
+        cadastrarContrato() {
+          this.contratos.push({ ...this.contrato });
+          this.contrato = { numero: '', produto: '', fornecedor: '', dataEmpenho: '', prazoEntrega: '', status: 'ativo' };
+        },
+        registrarEntrega() {
+          this.entregas.push({ ...this.entrega });
+          this.entrega = { contrato: '', dataEntrega: '', entregue: 'false', observacao: '' };
+        },
+        executarBackup() {
+          const now = new Date();
+          this.backupData = now.toLocaleString();
+        },
+        totalPorStatus(tipo) {
+          return this.contratos.filter(c => this.getStatus(c) === tipo).length;
+        },
+        getStatus(c) {
+          const hoje = new Date();
+          const prazo = new Date(c.prazoEntrega);
+          const diff = Math.floor((hoje - prazo) / (1000 * 60 * 60 * 24));
+          if (diff <= 0) return 'verde';
+          if (diff > 0 && diff <= 60) return diff > 30 ? 'amarelo' : 'verde';
+          return 'vermelho';
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
+
+
